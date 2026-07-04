@@ -1,0 +1,278 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  PARTNER
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(uuid())
+  phone     String   @unique
+  email     String?  @unique
+  password  String?
+  name      String
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer Customer?
+  partner  Partner?
+  admin    Admin?
+}
+
+model Customer {
+  id             String         @id @default(uuid())
+  userId         String         @unique
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletBalance  Float          @default(0)
+  membershipTier MembershipTier @default(FREE)
+
+  addresses  Address[]
+  bookings   Booking[]
+  reviews    Review[]
+  customJobs CustomJob[]
+  payments   Payment[]
+}
+
+model Partner {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  aadhaarNumber         String?
+  panNumber             String?
+  selfieUrl             String?
+  addressProofUrl       String?
+  policeVerificationUrl String?
+  bankDetails           Json? // Stores account no, IFSC, UPI
+
+  status     PartnerStatus @default(PENDING)
+  isOnline   Boolean       @default(false)
+  currentLat Float?
+  currentLng Float?
+
+  walletBalance Float @default(0)
+  totalEarnings Float @default(0)
+  averageRating Float @default(0)
+
+  bookings    Booking[]
+  reviews     Review[]
+  settlements Settlement[]
+}
+
+model Admin {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum PartnerStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+enum MembershipTier {
+  FREE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+model Address {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type       String // HOME, OFFICE, OTHER
+  street     String
+  city       String
+  state      String
+  zipCode    String
+  lat        Float?
+  lng        Float?
+
+  bookings Booking[]
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  imageUrl    String?
+  services    Service[]
+}
+
+model Service {
+  id               String   @id @default(uuid())
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  price            Float
+  estimatedMinutes Int
+  imageUrl         String?
+  isActive         Boolean  @default(true)
+
+  bookingItems BookingItem[]
+}
+
+model Booking {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  partnerId  String?
+  partner    Partner? @relation(fields: [partnerId], references: [id])
+  addressId  String
+  address    Address  @relation(fields: [addressId], references: [id])
+
+  status      BookingStatus @default(PENDING)
+  scheduledAt DateTime
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  totalPrice Float
+  otp        String? // OTP for verification
+
+  beforePhotos         Json? // Array of URLs
+  afterPhotos          Json? // Array of URLs
+  customerSignatureUrl String?
+
+  items     BookingItem[]
+  payment   Payment?
+  review    Review?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+enum BookingStatus {
+  PENDING
+  PARTNER_ASSIGNED
+  ON_THE_WAY
+  REACHED
+  STARTED
+  COMPLETED
+  CANCELLED
+}
+
+model BookingItem {
+  id             String  @id @default(uuid())
+  bookingId      String
+  booking        Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  serviceId      String
+  service        Service @relation(fields: [serviceId], references: [id])
+  quantity       Int     @default(1)
+  priceAtBooking Float
+}
+
+model Payment {
+  id         String   @id @default(uuid())
+  bookingId  String   @unique
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  method        PaymentMethod
+  transactionId String?
+
+  tipAmount      Float?
+  discountAmount Float?
+  taxAmount      Float?
+
+  createdAt DateTime @default(now())
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  UPI
+  CARD
+  NETBANKING
+  CASH
+  WALLET
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  bookingId  String   @unique
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  partnerId  String
+  partner    Partner  @relation(fields: [partnerId], references: [id])
+
+  rating    Int // 1 to 5
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model Coupon {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  discountType  DiscountType // PERCENTAGE, FIXED
+  discountValue Float
+  maxDiscount   Float?
+  minOrderValue Float?
+  validFrom     DateTime
+  validUntil    DateTime
+  isActive      Boolean      @default(true)
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+model CustomJob {
+  id           String   @id @default(uuid())
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id])
+  title        String
+  instructions String
+  photos       Json?
+
+  status        CustomJobStatus @default(REQUESTED)
+  proposedPrice Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum CustomJobStatus {
+  REQUESTED
+  PRICE_PROPOSED
+  ACCEPTED
+  REJECTED
+}
+
+model Settlement {
+  id            String           @id @default(uuid())
+  partnerId     String
+  partner       Partner          @relation(fields: [partnerId], references: [id])
+  amount        Float
+  status        SettlementStatus @default(PENDING)
+  transactionId String?
+  createdAt     DateTime         @default(now())
+  processedAt   DateTime?
+}
+
+enum SettlementStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
