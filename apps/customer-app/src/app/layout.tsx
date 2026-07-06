@@ -41,14 +41,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 text-gray-900`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900 font-sans`}
       >
         <Providers>
-          <div className="max-w-md mx-auto bg-gray-50 min-h-[100dvh] relative shadow-2xl overflow-x-hidden flex flex-col">
-            <div className="flex-1 overflow-y-auto pb-24">
+          <div className="min-h-[100dvh] relative flex flex-col">
+            <div className="flex-1 pb-20 md:pb-0">
               {children}
             </div>
-            <BottomNav />
+            {/* Bottom Nav only shows on small screens */}
+            <div className="block md:hidden">
+              <BottomNav />
+            </div>
           </div>
         </Providers>
       </body>
