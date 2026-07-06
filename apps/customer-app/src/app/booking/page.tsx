@@ -1,3 +1,5 @@
+import LocationListener from '../../components/LocationListener';
+
 export default function BookingPage() {
   return (
     <main className="p-8 pb-24">
@@ -20,6 +22,7 @@ export default function BookingPage() {
           </div>
           <p className="text-sm text-gray-500">Tomorrow, 2:00 PM</p>
           <p className="text-sm font-medium mt-2">₹799</p>
+          <LocationListener bookingId="mock-booking-123" />
         </div>
       </div>
       

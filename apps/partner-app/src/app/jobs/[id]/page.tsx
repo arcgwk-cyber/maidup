@@ -1,3 +1,5 @@
+import LocationEmitter from '../../../components/LocationEmitter';
+
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   return (
@@ -23,7 +25,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <LocationEmitter bookingId={resolvedParams.id} />
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-4">
         <h3 className="font-semibold mb-4">Job Actions</h3>
         <button className="w-full bg-green-600 text-white py-3 rounded-lg font-bold mb-3 shadow-md">
           Reached Location

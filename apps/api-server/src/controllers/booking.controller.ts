@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '@maidapp/db';
+import { getIo } from '../socket';
 
 export const createBooking = async (req: Request, res: Response) => {
   try {
@@ -125,6 +126,13 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
     const updatedBooking = await prisma.booking.update({
       where: { id },
       data: updateData
+    });
+
+    // Broadcast the status update to anyone in the booking room
+    getIo().to(`booking_${id}`).emit('booking-status-changed', {
+      bookingId: id,
+      status,
+      timestamp: new Date().toISOString()
     });
 
     res.json(updatedBooking);
