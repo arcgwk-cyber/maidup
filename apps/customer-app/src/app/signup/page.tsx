@@ -11,6 +11,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -18,6 +19,11 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agreedToTerms) {
+      setError('You must agree to the Terms & Conditions to register.');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
 
@@ -27,12 +33,13 @@ export default function SignupPage() {
         email, 
         phone, 
         password,
-        role: 'CUSTOMER' 
+        role: 'CUSTOMER',
+        agreedToTerms 
       });
       setAuth(response.data.user, response.data.token);
       router.push('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+      setError(err.response?.data?.error?._errors?.[0] || err.response?.data?.error?.agreedToTerms?._errors?.[0] || err.response?.data?.error || 'Signup failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +83,7 @@ export default function SignupPage() {
             type="tel"
             required
             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-            placeholder="+1 234 567 8900"
+            placeholder="9876543210"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
@@ -92,6 +99,23 @@ export default function SignupPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+        </div>
+        
+        <div className="flex items-start mt-4">
+          <input
+            id="terms"
+            type="checkbox"
+            required
+            checked={agreedToTerms}
+            onChange={(e) => setAgreedToTerms(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+            I have read and agree to the{' '}
+            <Link href="/terms" className="text-blue-600 font-bold hover:underline" target="_blank">
+              Terms & Conditions, Refund Policy, and Safety Guidelines
+            </Link>.
+          </label>
         </div>
 
         {error && <p className="text-red-500 text-sm font-medium">{error}</p>}

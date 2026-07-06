@@ -7,9 +7,13 @@ import { config } from '../config';
 
 const registerSchema = z.object({
   phone: z.string().min(10),
+  email: z.string().email().optional(),
   password: z.string().min(6),
   name: z.string().min(2),
-  role: z.enum(['CUSTOMER', 'PARTNER', 'ADMIN']).default('CUSTOMER')
+  role: z.enum(['CUSTOMER', 'PARTNER', 'ADMIN']).default('CUSTOMER'),
+  agreedToTerms: z.literal(true, {
+    errorMap: () => ({ message: "You must agree to the Terms and Conditions" })
+  })
 });
 
 export const register = async (req: Request, res: Response) => {
@@ -18,7 +22,7 @@ export const register = async (req: Request, res: Response) => {
     if (!parsed.success) {
       return res.status(400).json({ error: parsed.error.format() });
     }
-    const { phone, password, name, role } = parsed.data;
+    const { phone, email, password, name, role, agreedToTerms } = parsed.data;
 
     const existingUser = await prisma.user.findUnique({ where: { phone } });
     if (existingUser) {
@@ -30,9 +34,12 @@ export const register = async (req: Request, res: Response) => {
     const user = await prisma.user.create({
       data: {
         phone,
+        email,
         name,
         password: hashedPassword,
         role: role as any,
+        agreedToTerms,
+        termsAgreedAt: new Date()
       }
     });
 

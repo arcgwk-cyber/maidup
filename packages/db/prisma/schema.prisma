@@ -19,9 +19,11 @@ model User {
   email     String?  @unique
   password  String?
   name      String
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role          Role      @default(CUSTOMER)
+  agreedToTerms Boolean   @default(false)
+  termsAgreedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   customer Customer?
   partner  Partner?
