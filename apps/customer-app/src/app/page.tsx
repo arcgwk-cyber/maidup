@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, Sparkles, MapPin, Star, ShieldCheck, Clock, CheckCircle2, ChevronRight, Menu } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '../store/authStore';
 import Link from 'next/link';
 
 export default function Home() {
