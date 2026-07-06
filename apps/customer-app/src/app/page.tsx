@@ -34,7 +34,6 @@ export default function Home() {
         <div className="flex items-center space-x-8 font-medium text-gray-600">
           <Link href="/" className="hover:text-blue-600 transition-colors">Services</Link>
           <Link href="/booking" className="hover:text-blue-600 transition-colors">My Bookings</Link>
-          <Link href="/terms" className="hover:text-blue-600 transition-colors">Safety Promise</Link>
         </div>
         <div>
           {!user ? (
